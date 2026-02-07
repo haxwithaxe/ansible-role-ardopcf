@@ -12,3 +12,28 @@ repos:
     rev: v26.1.1
     hooks:
       - id: ansible-lint
+  - repo: local
+    hooks:
+      - id: no_debug_comments
+        name: No Debug Comments
+        language: pygrep
+        entry: '("""|#) ?DEBUG'
+        types:
+          - file
+        fail_fast: false
+      - id: no_fixme_comments
+        name: No FIXME Comments
+        language: pygrep
+        entry: '("""|#) ?FIXME'
+        types:
+          - file
+        exclude: .pre-commit-config.yaml
+        fail_fast: false
+      - id: no_testing_comments
+        name: No Testing Comments
+        language: pygrep
+        entry: '("""|#) ?[A-Z0-9_]*TEST'
+        types:
+          - file
+        exclude: '(^.pre-commit-config.yaml|^tests/docker/run.sh)'
+        fail_fast: false
