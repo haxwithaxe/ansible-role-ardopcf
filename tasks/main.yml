@@ -1,0 +1,54 @@
+---
+
+- name: Install build dependencies
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - libasound2-dev
+      - git
+    state: present
+
+- name: Checkout ardopcf git
+  become: yes
+  ansible.builtin.git:
+    repo: "{{ ardopcf_git_url }}"
+    version: "{{ ardopcf_git_version }}"
+    dest: "{{ ardopcf_src_dir }}"
+
+- name: Create a clean ardopcf build environment
+  community.general.make:
+    chdir: "{{ ardopcf_src_dir }}"
+    target: cleanall
+
+- name: Build ardopcf
+  community.general.make:
+    chdir: "{{ ardopcf_src_dir }}"
+
+- name: Get installed ardopcf version
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      if which ardopcf; then
+        ardopcf -h | head -n 1
+      else
+        echo
+      fi
+  register: _ardopcf_installed_version
+
+- name: Get built ardopcf executable path
+  ansible.builtin.command:
+    cmd: 'find {{ ardopcf_src_dir }} -type f -name ardopcf'
+  register: _ardopcf_built_executable
+
+- name: Get built ardopcf version
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      {{ _ardopcf_built_executable.stdout_lines[0] }} -h | head -n 1
+  register: _ardopcf_built_version
+
+- name: Install ardopcf
+  ansible.builtin.copy:
+    src: "{{ _ardopcf_built_executable }}"
+    dest: "{{ ardopcf_installed_executable }}"
+  when: _ardopcf_built_version.stdout != _ardopcf_installed_version.stdout

@@ -1,0 +1,6 @@
+---
+
+ardopcf_git_url: https://github.com/pflarue/ardop.git
+ardopcf_git_version: develop
+ardopcf_installed_executable: /usr/local/bin/ardopcf
+ardopcf_src_dir: /usr/local/src/ardopcf
