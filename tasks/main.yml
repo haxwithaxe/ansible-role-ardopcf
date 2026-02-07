@@ -14,11 +14,13 @@
     repo: "{{ ardopcf_git_url }}"
     version: "{{ ardopcf_git_version }}"
     dest: "{{ ardopcf_src_dir }}"
+  register: _ardopcf_git_checkout  # For idempotency
 
 - name: Create a clean ardopcf build environment
   community.general.make:
     chdir: "{{ ardopcf_src_dir }}"
     target: cleanall
+  when: _ardopcf_git_checkout.changed  # noqa: no-handler # For idempotency
 
 - name: Build ardopcf
   community.general.make:
@@ -34,11 +36,13 @@
         echo
       fi
   register: _ardopcf_installed_version
+  changed_when: no
 
 - name: Get built ardopcf executable path
   ansible.builtin.command:
     cmd: 'find {{ ardopcf_src_dir }} -type f -name ardopcf'
   register: _ardopcf_built_executable
+  changed_when: no
 
 - name: Get built ardopcf version
   ansible.builtin.shell:
@@ -46,9 +50,14 @@
       set -o pipefail
       {{ _ardopcf_built_executable.stdout_lines[0] }} -h | head -n 1
   register: _ardopcf_built_version
+  changed_when: no
 
 - name: Install ardopcf
   ansible.builtin.copy:
-    src: "{{ _ardopcf_built_executable }}"
+    src: "{{ _ardopcf_built_executable.stdout_lines[0] }}"
     dest: "{{ ardopcf_installed_executable }}"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
   when: _ardopcf_built_version.stdout != _ardopcf_installed_version.stdout
