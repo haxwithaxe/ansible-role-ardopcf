@@ -1,10 +1,11 @@
 ---
-# Purpose: assert that the instance really ended up in the expected state.
-# Molecule calls this playbook with `molecule verify`.
+
 - name: Verify
-  hosts: instance
+  hosts: molecule
   gather_facts: false # Quicker, if you do not need facts
   tasks:
-    - name: Assert something
-      ansible.builtin.assert:
-        that: true
+    - name: Assert ardopcf is installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/ardopcf
+      register: _ardopcf_molecule_installed_stat
+      failed_when: not _ardopcf_molecule_installed_stat.stat.executable
