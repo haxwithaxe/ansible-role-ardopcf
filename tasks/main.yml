@@ -19,7 +19,7 @@
 - name: Create a clean ardopcf build environment
   community.general.make:
     chdir: "{{ ardopcf_src_dir }}"
-    target: cleanall
+    target: clean
   when: _ardopcf_git_checkout.changed  # noqa: no-handler # For idempotency
 
 - name: Build ardopcf
